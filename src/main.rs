@@ -1,32 +1,35 @@
 use std::fs::File;
-use std::io::{Read, Result};
+use std::io::Read;
 
-fn main() {
-    let result = read_line_from_file();
-    let mut count = 0;
-    match result {
-        Ok(lines) => {
-            for line in lines.trim().split("\n") {
-                count += 1;
-                println!("{} {}", count, line);
-            }
-        },
-        Err(e) => panic!("Something went wrong {}", e),
+struct MyError {
+    details: String,
+}
+
+impl MyError {
+    fn new(msg: &str) -> MyError {
+        MyError {
+            details: msg.to_string(),
+        }
     }
 }
 
-fn read_line_from_file() -> Result<String> {
-    let greeting_file_result = File::open("greeting.txt");
-
-    let mut greeting_file = match greeting_file_result {
-        Ok(file) => file,
-        Err(e) => return Err(e),
-    };
-
-    let mut line = String::new();
-
-    match greeting_file.read_to_string(&mut line) {
-        Ok(_) => Ok(line),
-        Err(e) => Err(e),
+impl From<std::io::Error> for MyError {
+    fn from(e: std::io::Error) -> Self {
+       return MyError::new(&e.to_string());
     }
+}
+
+fn main() {
+    let username = read_username_from_file();
+
+    match username {
+        Ok(username) => println!("Succes! your username is: {}", username),
+        Err(e) => panic!("Error occured: {}", e.details),
+    };
+}
+
+fn read_username_from_file() -> Result<String, MyError> {
+    let mut username = String::new();
+    File::open("hello.txt")?.read_to_string(&mut username)?;
+    Ok(username)
 }
